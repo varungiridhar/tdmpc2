@@ -121,7 +121,6 @@ def mlp(in_dim, mlp_dims, out_dim, act=None, dropout=0.):
 	mlp.append(NormedLinear(dims[-2], dims[-1], act=act) if act else nn.Linear(dims[-2], dims[-1]))
 	return nn.Sequential(*mlp)
 
-
 def conv(in_shape, num_channels, act=None):
 	"""
 	Basic convolutional encoder for TD-MPC2 with raw image observations.

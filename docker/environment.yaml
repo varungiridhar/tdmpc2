@@ -2,19 +2,18 @@ name: tdmpc2
 channels:
   - pytorch-nightly
   - nvidia
-  - conda-forge
+  #- conda-forge # enviornment never solves
   - defaults
 dependencies:
   - cudatoolkit=11.7
   - glew=2.1.0
-  - glib=2.68.4
   - pip=21.0
   - python=3.9.0
-  - pytorch>=2.2.2
+  - pytorch>=2.2.0
   - torchvision>=0.16.2
   - pip:
     - absl-py==2.0.0
-    - "cython<3"
+    - cython==0.29.26
     - dm-control==1.0.8
     - ffmpeg==1.4
     - glfw==2.6.4
@@ -28,7 +27,7 @@ dependencies:
     - mujoco-py==2.1.2.14
     - numpy==1.23.5
     - omegaconf==2.3.0
-    - open3d==0.18.0
+    #- open3d # not found in pip distribution error
     - opencv-contrib-python==4.9.0.80
     - opencv-python==4.9.0.80
     - pandas==2.1.4
@@ -39,9 +38,9 @@ dependencies:
     - protobuf==4.25.2
     - pillow==10.2.0
     - pyquaternion==0.9.9
-    - tensordict-nightly==2024.3.26
+    - tensordict-nightly==2024.1.10
     - termcolor==2.4.0
-    - torchrl-nightly==2024.3.26
+    - torchrl-nightly==2024.1.10
     - transforms3d==0.4.1
     - trimesh==4.0.9
     - tqdm==4.66.1
@@ -50,17 +49,17 @@ dependencies:
     ####################
     # Gym:
     # (unmaintained but required for maniskill2/meta-world/myosuite)
-    # - gym==0.21.0
+    - gym==0.26.2
     ####################
     # ManiSkill2:
     # (requires gym==0.21.0 which occasionally breaks)
-    # - mani-skill2==0.4.1
+    #- mani-skill2==0.4.1
     ####################
     # Meta-World:
     # (requires gym==0.21.0 which occasionally breaks)
-    # - git+https://github.com/Farama-Foundation/Metaworld.git@04be337a12305e393c0caf0cbf5ec7755c7c8feb
+    #- git+https://github.com/Farama-Foundation/Metaworld.git@04be337a12305e393c0caf0cbf5ec7755c7c8feb
     ####################
     # MyoSuite:
     # (requires gym==0.13 which conflicts with meta-world / mani-skill2)
-    # - myosuite
+    #- myosuite
     ####################

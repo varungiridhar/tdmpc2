@@ -22,7 +22,44 @@ class WorldModel(nn.Module):
 			for i in range(len(cfg.tasks)):
 				self._action_masks[i, :cfg.action_dims[i]] = 1.
 		self._encoder = layers.enc(cfg)
-		self._dynamics = layers.mlp(cfg.latent_dim + cfg.action_dim + cfg.task_dim, 2*[cfg.mlp_dim], cfg.latent_dim, act=layers.SimNorm(cfg))
+
+		self.group_seperate = {
+		'hopper': {
+			'ED2': [[0, 1], [2], [3]],
+		},
+
+		'finger': {
+			'ED2': [[0], [1]],
+		},
+
+		'cheetah': {
+			'ED2': [[2], [5], [3, 4], [0, 1]],
+		},
+
+		'walker': {
+			'ED2': [[0, 1, 3, 4], [2], [5]],
+		},
+
+		'reacher': {
+			'ED2': [[0], [1]],
+			},
+
+		'humanoid': {
+			'ED2': [[7], [13], [2, 3, 9], [0, 5, 11], [6, 8], [12, 14], [18, 15, 17, 20, 16, 1, 19], [4, 10]],
+		},
+		}
+		self.task_group_separate = self.group_seperate[cfg.task_prefix][cfg.ed2_model]
+		if self.cfg.ed2_mode:
+			# define action_dim grouping:
+			# define MLPs for each group:
+			self._dynamics = nn.ModuleList()
+			for group in self.task_group_separate:
+				action_dim = len(group)
+				self._dynamics.append(layers.mlp(cfg.latent_dim + action_dim + cfg.task_dim, 2*[cfg.mlp_dim], cfg.latent_dim, act=layers.SimNorm(cfg)))
+		else:
+			self._dynamics = layers.mlp(cfg.latent_dim + cfg.action_dim + cfg.task_dim, 2*[cfg.mlp_dim], cfg.latent_dim, act=layers.SimNorm(cfg))
+		
+		
 		self._reward = layers.mlp(cfg.latent_dim + cfg.action_dim + cfg.task_dim, 2*[cfg.mlp_dim], max(cfg.num_bins, 1))
 		self._pi = layers.mlp(cfg.latent_dim + cfg.task_dim, 2*[cfg.mlp_dim], 2*cfg.action_dim)
 		self._Qs = layers.Ensemble([layers.mlp(cfg.latent_dim + cfg.action_dim + cfg.task_dim, 2*[cfg.mlp_dim], max(cfg.num_bins, 1), dropout=cfg.dropout) for _ in range(cfg.num_q)])
@@ -107,8 +144,20 @@ class WorldModel(nn.Module):
 		"""
 		if self.cfg.multitask:
 			z = self.task_emb(z, task)
-		z = torch.cat([z, a], dim=-1)
-		return self._dynamics(z)
+
+		if not self.cfg.ed2_mode:
+			z = torch.cat([z, a], dim=-1)
+			return self._dynamics(z)
+		
+		next_z = torch.zeros_like(z)
+
+		for i, action_group in enumerate(self.task_group_separate):
+			action = a[:, action_group]
+			z = torch.cat([z, action], dim=-1)
+			z = self._dynamics[i](z)
+			next_z += z
+		next_z /= len(self.task_group_separate)
+		return next_z 
 	
 	def reward(self, z, a, task):
 		"""
